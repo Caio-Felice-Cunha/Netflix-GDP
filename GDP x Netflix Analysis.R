@@ -1,4 +1,3 @@
-########### Web App Analytics for Big Data: 
 #  How GDP and Social Inequality Affect Netflix's Growth? #####
 
 # The main objective is to present graphics in R.
