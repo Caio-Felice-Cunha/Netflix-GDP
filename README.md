@@ -37,5 +37,5 @@ For countries with less development, one way out would be to reduce the catalog,
 ## Next Steps
 * Create a dashboard in Power BI
 * Improve analysis to compare countries
-
+* Understand the correlation between variables
 
