@@ -39,3 +39,5 @@ For countries with less development, one way out would be to reduce the catalog,
 * Improve analysis to compare countries
 * Understand the correlation between variables
 
+## Disclaimer 
+A good part of this project was largely done in the Data Science Academy, Big Data Analytics with R and Microsoft Azure Machine Learning course (part of the Data Scientist training)
