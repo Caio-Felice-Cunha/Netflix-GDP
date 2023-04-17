@@ -20,8 +20,12 @@ It was assumed that Netflix wants more subscribers to increase its profitability
 ## Solution Strategy
 In order to understand the problem, several databases were crossed to obtain a joint vision for better decision making.
 For that I used:
-* .csv files for data storage;
-* RStudio for statistical analysis
+* Step 01: Import and analyze the data;
+* Step 02: Cleaning and Preparing the Six Combined Dataset;
+* Step 03: Extract, clean up and combining data;
+* Step 04: Combine everything into the final dataframe;
+* Step 05: Data Visualization.
+
 
 ## Data Insights
 The main thesis is that the greater the GDP, the greater the number of subscribers and also the greater the profitability.<br>
