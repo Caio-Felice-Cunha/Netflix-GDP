@@ -1,5 +1,5 @@
 # Netflix and GDP
-Analyzing in RStudio how a GDP of a Country influences the Nteflix Subscriptions. <br>
+Analyzing in RStudio how a country's GDP influences Netflix subscriptions. <br>
 [Executive Report](https://github.com/Caio-Felice-Cunha/Netflix-GDP/blob/main/Executive%20Report.pdf)<br>
 [Full Report](https://github.com/Caio-Felice-Cunha/Netflix-GDP/blob/main/Full%20Report.pdf)
 
