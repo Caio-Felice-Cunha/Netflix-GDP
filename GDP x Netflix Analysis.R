@@ -28,9 +28,10 @@
 
 ###################### PART 01 ######################
 
-# Defining the workdirectory
-setwd("C:\\Users\\Caio\\OneDrive\\Desktop PC\\Desktop\\Portfolio\\GDP X NETFLIX")
-getwd()
+# Working directory
+# Run this script from the repository root (where this .R file lives).
+# In RStudio you can do: Session > Set Working Directory > To Source File Location.
+# Paths below are relative and use forward slashes so they work on every OS.
 
 # Necessary packages
 library(dplyr)
@@ -42,19 +43,22 @@ library(plotly)
 
 
 # Importing the data
-netflix_data_dec_2021 <-read.csv("datasets\\dados_netflix_Dec_2021.csv")
+netflix_data_dec_2021 <- read.csv("Datasets/raw/dados_netflix_Dec_2021.csv")
 
-netflix_subscriptions_jul_2021 <-read.csv("datasets\\as_net_2021.csv")
+netflix_subscriptions_jul_2021 <- read.csv("Datasets/raw/as_net_2021.csv")
 
-wage_inequality_data <-read.csv("datasets\\dados_desig_soc_harvard.csv")
+wage_inequality_data <- read.csv("Datasets/raw/dados_desig_soc_harvard.csv")
 
-world_bank_data <-read.csv("datasets\\dados_world_bank.csv", header = FALSE)
+world_bank_data <- read.csv("Datasets/raw/dados_world_bank.csv", header = FALSE)
 
-top_10_shows_netflix <-read_excel("C:\\Users\\Caio\\OneDrive\\Desktop PC\\Desktop\\Portfolio\\GDP X NETFLIX\\top10.xlsx")
+top_10_shows_netflix <- read_excel("Datasets/raw/top10.xlsx")
 
-wikipedia_iso_country_codes <- read.csv("datasets\\iso-country-codes.csv")
+wikipedia_iso_country_codes <- read.csv("Datasets/raw/iso-country-codes.csv")
 
-IMDB_Data <- read_tsv("datasets\\data.tsv")
+# data.tsv is the IMDB title.basics file (~800MB, not committed).
+# Download title.basics.tsv.gz from https://datasets.imdbws.com/,
+# extract it, and save it as Datasets/raw/data.tsv before running stages 3-7.
+IMDB_Data <- read_tsv("Datasets/raw/data.tsv")
 
 ## See the data
 
@@ -105,11 +109,16 @@ netflix_data_GDP <- merge(
   world_bank_data, 
   by = "Country")
 
-# Extracts the 2020 GDP
-netflix_data_GDP2020 <- netflix_data_GDP[-c(11:72, 74, 75)] 
+# Extract the GDP column.
+# IMPORTANT: in the raw World Bank file the year header row maps V64 -> 2019
+# and V65 -> 2020. This pipeline keeps V64, so the value is 2019 GDP, not 2020.
+# The column is therefore labeled "2019 GDP (World Bank)" to match the data.
+# To use true 2020 GDP instead, keep V65 below and relabel accordingly
+# (note 2020 carries the COVID drop, e.g. Brazil 2019 = 1.878e12, 2020 = 1.445e12).
+netflix_data_GDP2019 <- netflix_data_GDP[-c(11:72, 74, 75)]
 
-names(netflix_data_GDP2020)[names(netflix_data_GDP2020) == 'V64'] <- 
-  "2020 GDP (World Bank)"
+names(netflix_data_GDP2019)[names(netflix_data_GDP2019) == 'V64'] <-
+  "2019 GDP (World Bank)"
 
 # Cleanup of wage inequality dataframe
 wage_inequality_data <- wage_inequality_data[, c(1:3)]
@@ -127,9 +136,9 @@ wage_inequality_data <- merge(
   by.y = c("country", "max"))
 
 netflix_data_GDP_wage2020 <- merge(
-  netflix_data_GDP2020, 
-  wage_inequality_data, 
-  by.x=c("Country"), 
+  netflix_data_GDP2019,
+  wage_inequality_data,
+  by.x=c("Country"),
   by.y=c("country"))
 
 # Clear the billing and subscription dataset 
@@ -152,7 +161,7 @@ complete <- merge(
 
 
 # Save the dataframe produced so far
-write.csv(complete, "clean_datasets\\complete.csv", row.names = FALSE)
+write.csv(complete, "Datasets/clean/complete.csv", row.names = FALSE)
 
 
 ### Cleaning and Preparing the Second Combined Dataset ###
@@ -210,7 +219,7 @@ genrecount$n <- as.numeric(genrecount$n)
 #View(genrecount)
 
 # Save to disk
-write.csv(genrecount, "clean_datasets/genrecount.csv", row.names = FALSE) 
+write.csv(genrecount, "Datasets/clean/genrecount.csv", row.names = FALSE) 
 
 ### Cleaning and Preparing the Third Combined Dataset ###
 
@@ -244,21 +253,33 @@ added$id <- paste(added$id, added$label)
 # calculate sum
 total = sum(added$n)
 
-# Combine everything into the final dataframe
+# Combine everything into the final dataframe.
+# Drop the genres helper column first so the frame has 4 columns
+# (label, n, parent, id), then prepend the root row with named columns so
+# the root keeps a real label ("total") instead of landing as NA.
 sunburst <- rbind(added, sunburst)
-sunburst <- rbind(c("total", total, NA, NA, "total"), sunburst)
 sunburst <- sunburst[,-c(3)]
+root_row <- data.frame(
+  label = "total",
+  n = total,
+  parent = NA,
+  id = "total")
+sunburst <- rbind(root_row, sunburst)
 sunburst$n <- as.numeric(sunburst$n)
 #View(sunburst)
 
 # Save to disk
-write.csv(sunburst, "clean_datasets/sunburst.csv", row.names = FALSE)
+write.csv(sunburst, "Datasets/clean/sunburst.csv", row.names = FALSE)
 
 
 ### Cleaning and Preparing the Fourth Combined Dataset ###
 
-# Let's work with top 10 to avoid performance issues in graphics
-top10sunburst <- sunburst[-c(1:28),]
+# Let's work with top 10 to avoid performance issues in graphics.
+# sunburst has 29 header rows here: 1 grand-total row plus 28 genre-aggregate
+# rows (Action through Western). Drop all 29 so only country-level rows remain.
+# The previous -c(1:28) left the 29th header row (Western, n=453) in the data,
+# which corrupted top10sunburst.csv and double-counted 453 in the grand total.
+top10sunburst <- subset(sunburst, parent != "total" & label != "total")
 top10sunburst$n <- as.numeric(top10sunburst$n)
 #View(top10sunburst)
 
@@ -282,12 +303,20 @@ top10add$n <- as.numeric(top10add$n)
 
 total = sum(top10add$n)
 top10sunburst <- rbind(top10add, top10sunburst)
-top10sunburst <- rbind(c("total", total, NA, NA, "total"), top10sunburst)
+# Prepend the root row with named columns (4 columns: id, n, label, parent).
+# The old rbind passed a 5-element vector into this 4-column frame, which
+# misaligned the columns and left the root node without a label in the output.
+top10root <- data.frame(
+  id = "total",
+  n = total,
+  label = "total",
+  parent = NA)
+top10sunburst <- rbind(top10root, top10sunburst)
 top10sunburst$n <- as.numeric(top10sunburst$n)
 #View(top10sunburst)
 
 # Save to disk
-write.csv(top10sunburst, "clean_datasets/top10sunburst.csv", row.names = FALSE)
+write.csv(top10sunburst, "Datasets/clean/top10sunburst.csv", row.names = FALSE)
 
 
 ### Cleaning and Preparing the Fifth Combined Dataset ###
@@ -300,34 +329,37 @@ in_total$id = sub("total  -  ", "", in_total$id)
 #View(in_total)
 
 # Salva em disco
-write.csv(in_total, "clean_datasets/in_total.csv", row.names = FALSE)
+write.csv(in_total, "Datasets/clean/in_total.csv", row.names = FALSE)
 
 
 ### Sixth Combined Dataset Cleanup and Preparation ### 
 
 # Filter the previous dataframe and create a new one
 countrytree <- in_total[-c(1:28),]
+# rename maps label -> parents and parent -> labels. Use the exact new names
+# below instead of relying on data.frame $ partial matching (countrytree$parent
+# / $label), which silently breaks on tibbles or with warnPartialMatchDollar.
 countrytree <- rename(countrytree, parents = label)
 countrytree <- rename(countrytree, labels = parent)
 countrytree$id = c(" - ")
-countrytree$id <- paste(countrytree$parent, countrytree$id)
-countrytree$id <- paste(countrytree$id, countrytree$label)
+countrytree$id <- paste(countrytree$labels, countrytree$id)
+countrytree$id <- paste(countrytree$id, countrytree$parents)
 countries <- aggregate(countrytree$n, list(countrytree$parents), FUN = sum)
 countries <- rename(countries, labels = Group.1)
 countries <- rename(countries, n = x)
 countries$n <- as.numeric(countries$n)
-countries$id <- countries$label
+countries$id <- countries$labels
 countries$parents <- c(NA)
 countrytree <- rbind(countrytree, countries)
 #View(countrytree)
 
 # Save to disk
-write.csv(countrytree, "clean_datasets/countrytree.csv", row.names = FALSE)
+write.csv(countrytree, "Datasets/clean/countrytree.csv", row.names = FALSE)
 
 ######################################################
 
 # Load the first clean dataset
-complete <- read.csv("clean_datasets/complete.csv")
+complete <- read.csv("Datasets/clean/complete.csv")
 
 # Set the data type of some columns
 complete$X..of.Subscribers.Q4.2021..Estimate. <- 
@@ -386,9 +418,9 @@ complete_bar_out <-
          Country != "South Africa") #Because social inequality is very high
 
 # Load datasets 2, 3 and 6
-genre <- read.csv("clean_datasets/genrecount.csv")
-tree <- read.csv("clean_datasets/sunburst.csv")
-countries <- read.csv("clean_datasets/countrytree.csv")
+genre <- read.csv("Datasets/clean/genrecount.csv")
+tree <- read.csv("Datasets/clean/sunburst.csv")
+countries <- read.csv("Datasets/clean/countrytree.csv")
 
 # Filter the list of countries by removing NA values
 country_list <- filter(countries, is.na(parents))
@@ -409,7 +441,7 @@ country_list <- filter(countries, is.na(parents))
 ## Netflix.Q42021.Revenue
 fig <- plot_ly(
   data = complete_scat_out, 
-  x = ~X2020.GDP..World.Bank., 
+  x = ~X2019.GDP..World.Bank.,
   y = ~Netflix.Q42021.Revenue,
   type = "scatter", 
   mode = "markers", 
@@ -430,7 +462,7 @@ fig
 ## Netflix.Subscriptions.Q42021
 fig <- plot_ly(
   data = complete_scat_out, 
-  x = ~X2020.GDP..World.Bank., 
+  x = ~X2019.GDP..World.Bank.,
   y = ~Netflix.Subscriptions.Q42021,
   type = "scatter", 
   mode = "markers", 
@@ -450,7 +482,7 @@ fig
 ## Total.Catalog.Size
 fig <- plot_ly(
   data = complete_scat_out, 
-  x = ~X2020.GDP..World.Bank., 
+  x = ~X2019.GDP..World.Bank.,
   y = ~Total.Catalog.Size,
   type = "scatter", 
   mode = "markers", 
@@ -470,7 +502,7 @@ fig
 ## Basic.Subscription.Price
 fig <- plot_ly(
   data = complete_scat_out, 
-  x = ~X2020.GDP..World.Bank., 
+  x = ~X2019.GDP..World.Bank.,
   y = ~Basic.Subscription.Price,
   type = "scatter", 
   mode = "markers", 
@@ -490,7 +522,7 @@ fig
 ## Standard.Subscription.Price
 fig <- plot_ly(
   data = complete_scat_out, 
-  x = ~X2020.GDP..World.Bank., 
+  x = ~X2019.GDP..World.Bank.,
   y = ~Standard.Subscription.Price,
   type = "scatter", 
   mode = "markers", 
@@ -511,7 +543,7 @@ fig
 ## Premium.Subscription.Price
 fig <- plot_ly(
   data = complete_scat_out, 
-  x = ~X2020.GDP..World.Bank., 
+  x = ~X2019.GDP..World.Bank.,
   y = ~Premium.Subscription.Price,
   type = "scatter", 
   color = ~Country,
@@ -571,11 +603,12 @@ fig <- fig %>%
     locations = ~Alpha.3.code, 
     marker = list(line = l))
 
-fig <- fig %>% 
+fig <- fig %>%
   colorbar(title = 'Scale')
 
-fig <- fig %>% 
-  layout(title = 'Netflix Global Map in Q4-2021 (Billing)')
+# Pass geo = g so the Miller projection and frame settings actually apply.
+fig <- fig %>%
+  layout(title = 'Netflix Global Map in Q4-2021 (Billing)', geo = g)
 
 fig
 
@@ -599,11 +632,12 @@ fig <- fig %>%
                          locations = ~Alpha.3.code, 
                          marker = list(line = l))
 
-fig <- fig %>% 
+fig <- fig %>%
   colorbar(title = 'Scale')
 
-fig <- fig %>% 
-  layout(title = 'Netflix Global Map in Q4-2021 (Subscription)')
+# Pass geo = g so the Miller projection and frame settings actually apply.
+fig <- fig %>%
+  layout(title = 'Netflix Global Map in Q4-2021 (Subscription)', geo = g)
 
 fig
 
