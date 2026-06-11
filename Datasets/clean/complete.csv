@@ -1,4 +1,4 @@
-"Country","Country_code","Total.Library.Size","No..of.TV.Shows","No..of.Movies","Cost.Per.Month...Basic....","Cost.Per.Month...Standard....","Cost.Per.Month...Premium....","basic_standard_diff","premium_standard_diff","2020 GDP (World Bank)","year","gini_disp","X..of.Subscribers.Q4.2021..Estimate.","Q4.2021.Revenue....Estimate.","Alpha.3.code"
+"Country","Country_code","Total.Library.Size","No..of.TV.Shows","No..of.Movies","Cost.Per.Month...Basic....","Cost.Per.Month...Standard....","Cost.Per.Month...Premium....","basic_standard_diff","premium_standard_diff","2019 GDP (World Bank)","year","gini_disp","X..of.Subscribers.Q4.2021..Estimate.","Q4.2021.Revenue....Estimate.","Alpha.3.code"
 "Australia","au",6114,4050,2064,7.84,12.12,16.39,4.28,4.27,1391952510370.48,2018,32.8,"6,622,078","193,497,120","AUS"
 "Austria","at",5640,3779,1861,9.03,14.67,20.32,5.64,5.65,445011872704.47,2019,27.7,"961,399","33,629,745","AUT"
 "Belgium","be",4990,3374,1616,10.16,15.24,20.32,5.08,5.08,535288715239.999,2019,26.1,"1,699,092","59,434,234","BEL"
