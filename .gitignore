@@ -1,0 +1,23 @@
+# R
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj
+
+# RMarkdown / knitr cache and intermediates
+*_cache/
+*_files/
+*.knit.md
+*.utf8.md
+
+# Large raw input not committed (IMDB title.basics, ~800MB)
+# Download from https://datasets.imdbws.com/ and extract as Datasets/raw/data.tsv
+Datasets/raw/data.tsv
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*~
+.vscode/
+.idea/
